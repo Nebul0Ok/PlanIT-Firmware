@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <TFT_eSPI.h>
 
 #define BtnEsquerdo 21
 #define BtnDireito 16
@@ -20,9 +21,10 @@ class MenuController{
     public:
     MenuController();
 
-    void VerificarBotaoApertado();
+    void VerificarBotaoApertado(TFT_eSPI &tft);
     void ProximoBotao();
     void BotaoAnterior();
+    void DesenharContorno(TFT_eSPI &tft);
 
     private:
     Botao Concluir;
@@ -33,4 +35,6 @@ class MenuController{
     Botao Notificacao;
     std::vector<Botao> Botoes;
     int IndiceBotaoAtual;
+    int ProxBotao;
+    int AntBotao;
 };

@@ -5,11 +5,11 @@
 #include <Segoe_UI20pt7b.h>
 
 #include "CarregadorDeTela.h"
-
-
+#include "MenuController.h"
 
 TFT_eSPI tft;
 CarregadorDeTela Tela;
+MenuController Menu;
 
 
 void setup() {
@@ -43,14 +43,5 @@ void setup() {
 }
 
 void loop() {
-  if(digitalRead(BtnEsquerdo) == LOW){
-    Serial.println("Botão esquerdo foi apertado");
-    tft.drawRect(7,156,72,72, TFT_DARKGREY);
-    tft.drawRect(6,155,74,74, TFT_DARKGREY);
-    tft.drawRect(5,154,76,76, TFT_DARKGREY);
-
-    tft.drawRect(87,156,72,72, TFT_WHITE);
-    tft.drawRect(86,155,74,74, TFT_WHITE);
-    tft.drawRect(85,154,76,76, TFT_WHITE);
-  }
+  Menu.VerificarBotaoApertado(tft);
 }
