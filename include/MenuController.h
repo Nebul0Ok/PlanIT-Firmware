@@ -4,8 +4,8 @@
 #include <string>
 #include <TFT_eSPI.h>
 
-#define BtnEsquerdo 21
-#define BtnDireito 16
+#define BtnEsquerdo 16
+#define BtnDireito 21
 #define BtnConfirmar 17
 
 struct Botao{

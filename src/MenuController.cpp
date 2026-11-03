@@ -36,9 +36,9 @@ void MenuController::DesenharContorno(TFT_eSPI &tft){
     tft.drawRect(Botoes[ProxBotao].x-2,Botoes[ProxBotao].y-2,Botoes[ProxBotao].w+4,Botoes[ProxBotao].h+4, TFT_DARKGREY);
     tft.drawRect(Botoes[ProxBotao].x-3,Botoes[ProxBotao].y-3,Botoes[ProxBotao].w+6,Botoes[ProxBotao].h+6, TFT_DARKGREY);
 
-    tft.drawRect(Botoes[IndiceBotaoAtual].x-1,Botoes[IndiceBotaoAtual].y-1,Botoes[IndiceBotaoAtual].w+2,Botoes[ProxBotao].h+2, TFT_WHITE);
-    tft.drawRect(Botoes[IndiceBotaoAtual].x-2,Botoes[IndiceBotaoAtual].y-2,Botoes[IndiceBotaoAtual].w+4,Botoes[ProxBotao].h+4, TFT_WHITE);
-    tft.drawRect(Botoes[IndiceBotaoAtual].x-3,Botoes[IndiceBotaoAtual].y-3,Botoes[IndiceBotaoAtual].w+6,Botoes[ProxBotao].h+6, TFT_WHITE);
+    tft.drawRect(Botoes[IndiceBotaoAtual].x-1,Botoes[IndiceBotaoAtual].y-1,Botoes[IndiceBotaoAtual].w+2,Botoes[IndiceBotaoAtual].h+2, TFT_WHITE);
+    tft.drawRect(Botoes[IndiceBotaoAtual].x-2,Botoes[IndiceBotaoAtual].y-2,Botoes[IndiceBotaoAtual].w+4,Botoes[IndiceBotaoAtual].h+4, TFT_WHITE);
+    tft.drawRect(Botoes[IndiceBotaoAtual].x-3,Botoes[IndiceBotaoAtual].y-3,Botoes[IndiceBotaoAtual].w+6,Botoes[IndiceBotaoAtual].h+6, TFT_WHITE);
 
 }
 
@@ -46,14 +46,14 @@ void MenuController::VerificarBotaoApertado(TFT_eSPI &tft){
     if(digitalRead(BtnEsquerdo) == LOW){
         BotaoAnterior();
         DesenharContorno(tft);
+        while(digitalRead(BtnEsquerdo) == LOW) { delay(10); }
     }
-    else if(digitalRead(BtnEsquerdo) == LOW){
+    else if(digitalRead(BtnDireito) == LOW){
         ProximoBotao();
         DesenharContorno(tft);
+        while(digitalRead(BtnDireito) == LOW) { delay(10); }
     }
     else if(digitalRead(BtnConfirmar) == LOW){
-        
+        while(digitalRead(BtnConfirmar) == LOW) { delay(10);}
     }
-
-    delay(500);
 }

@@ -11,6 +11,9 @@ TFT_eSPI tft;
 CarregadorDeTela Tela;
 MenuController Menu;
 
+#define BtnEsquerdo 16
+#define BtnDireito 21
+#define BtnConfirmar 17
 
 void setup() {
   Serial.begin(115200);
@@ -39,6 +42,8 @@ void setup() {
 
   Serial.println("Configurando Botão Esquerdo");
   pinMode(BtnEsquerdo, INPUT_PULLUP);
+  pinMode(BtnDireito, INPUT_PULLUP);
+  pinMode(BtnConfirmar, INPUT_PULLUP);
 
 }
 
