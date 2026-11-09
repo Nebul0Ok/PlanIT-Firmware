@@ -39,21 +39,34 @@ void MenuController::DesenharContorno(TFT_eSPI &tft){
     tft.drawRect(Botoes[IndiceBotaoAtual].x-1,Botoes[IndiceBotaoAtual].y-1,Botoes[IndiceBotaoAtual].w+2,Botoes[IndiceBotaoAtual].h+2, TFT_WHITE);
     tft.drawRect(Botoes[IndiceBotaoAtual].x-2,Botoes[IndiceBotaoAtual].y-2,Botoes[IndiceBotaoAtual].w+4,Botoes[IndiceBotaoAtual].h+4, TFT_WHITE);
     tft.drawRect(Botoes[IndiceBotaoAtual].x-3,Botoes[IndiceBotaoAtual].y-3,Botoes[IndiceBotaoAtual].w+6,Botoes[IndiceBotaoAtual].h+6, TFT_WHITE);
-
 }
 
-void MenuController::VerificarBotaoApertado(TFT_eSPI &tft){
+void MenuController::resetarSelecao(){
+    this->IndiceBotaoAtual = 0;
+    this->ProxBotao = 1;
+    this->AntBotao = 5;
+}
+
+int MenuController::getIndiceBotaoAtual() const {
+    return this->IndiceBotaoAtual;
+}
+
+AcaoMenu MenuController::VerificarBotaoApertado(TFT_eSPI &tft){
     if(digitalRead(BtnEsquerdo) == LOW){
         BotaoAnterior();
         DesenharContorno(tft);
         while(digitalRead(BtnEsquerdo) == LOW) { delay(10); }
+        return AcaoMenu::Nenhuma;
     }
     else if(digitalRead(BtnDireito) == LOW){
         ProximoBotao();
         DesenharContorno(tft);
         while(digitalRead(BtnDireito) == LOW) { delay(10); }
+        return AcaoMenu::Nenhuma;
     }
     else if(digitalRead(BtnConfirmar) == LOW){
         while(digitalRead(BtnConfirmar) == LOW) { delay(10);}
+        return static_cast<AcaoMenu>(IndiceBotaoAtual);
     }
+    return AcaoMenu::Nenhuma;
 }

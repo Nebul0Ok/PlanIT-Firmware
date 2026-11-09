@@ -13,4 +13,5 @@ class CarregadorDeTela{
     void CarregarMenuSemInternet(TFT_eSPI &tft);
     void CarregarMenuMateriais(TFT_eSPI &tft);
     void CarregarMenuNotificacoes(TFT_eSPI &tft);
+    void CarregarMenuNovaTarefa(TFT_eSPI &tft);
 };

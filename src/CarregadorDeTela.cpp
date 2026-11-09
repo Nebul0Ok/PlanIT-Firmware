@@ -6,6 +6,7 @@
 #include "WiFi_Com.h"
 #include "WiFi_Sem.h"
 #include <Segoe_UI20pt7b.h>
+#include <Segoe_UI12pt7b.h>
 #include <Segoe_UI8pt7b.h>
 #include "Botoes.h"
 
@@ -84,4 +85,80 @@ void CarregadorDeTela::CarregarMenuComTarefas(TFT_eSPI &tft){
     tft.println("Teste de tarefas!");
     tft.resetViewport();
 
+}
+
+void CarregadorDeTela::CarregarMenuMateriais(TFT_eSPI &tft){
+    tft.fillScreen(BACKGROUND_SPLASH_SCREEN);
+    tft.pushImage(0, 0, WIFI_WIDTH, WIFI_HEIGHT, image_data_WiFi_Com, TFT_MAGENTA);
+    tft.pushImage(SCREEN_WIDTH - 55, 5, 50, 50, ComMaterial);
+
+    tft.fillRoundRect(10, 25, SCREEN_WIDTH - 20, 160, 6, BACKGROUND_MENU);
+    tft.drawRoundRect(10, 25, SCREEN_WIDTH - 20, 160, 6, TFT_NAVY);
+
+    tft.setTextColor(TFT_NAVY);
+    tft.setFreeFont(&Segoe_UI12pt7b);
+    tft.setCursor(20, 55);
+    tft.print("Materiais");
+
+    tft.setTextColor(TFT_BLACK);
+    tft.setFreeFont(&Segoe_UI8pt7b);
+    tft.setCursor(20, 85);
+    tft.println("- 1x Parafuso M4 20mm");
+    tft.setCursor(20, 110);
+    tft.println("- 2x Porca autotravante M4");
+    tft.setCursor(20, 135);
+    tft.println("- 1x Chapa de fixacao");
+
+    tft.setTextColor(TFT_DARKGREY);
+    tft.setFreeFont(&Segoe_UI8pt7b);
+    tft.drawString("[ Confirmar ] para Voltar", 70, 205);
+}
+
+void CarregadorDeTela::CarregarMenuNotificacoes(TFT_eSPI &tft){
+    tft.fillScreen(BACKGROUND_SPLASH_SCREEN);
+    tft.pushImage(0, 0, WIFI_WIDTH, WIFI_HEIGHT, image_data_WiFi_Com, TFT_MAGENTA);
+    tft.pushImage(SCREEN_WIDTH - 55, 5, 50, 50, ComNotificacao);
+
+    tft.fillRoundRect(10, 25, SCREEN_WIDTH - 20, 160, 6, BACKGROUND_MENU);
+    tft.drawRoundRect(10, 25, SCREEN_WIDTH - 20, 160, 6, TFT_DARKCYAN);
+
+    tft.setTextColor(TFT_DARKCYAN);
+    tft.setFreeFont(&Segoe_UI12pt7b);
+    tft.setCursor(20, 55);
+    tft.print("Notificacoes");
+
+    tft.setTextColor(TFT_BLACK);
+    tft.setFreeFont(&Segoe_UI8pt7b);
+    tft.setCursor(20, 85);
+    tft.println("- Nenhuma notificacao pendente.");
+    tft.setCursor(20, 110);
+    tft.println("- Sistema operacional atualizado.");
+
+    tft.setTextColor(TFT_DARKGREY);
+    tft.setFreeFont(&Segoe_UI8pt7b);
+    tft.drawString("[ Confirmar ] para Voltar", 70, 205);
+}
+
+void CarregadorDeTela::CarregarMenuNovaTarefa(TFT_eSPI &tft){
+    tft.fillScreen(BACKGROUND_SPLASH_SCREEN);
+    tft.pushImage(0, 0, WIFI_WIDTH, WIFI_HEIGHT, image_data_WiFi_Com, TFT_MAGENTA);
+
+    tft.fillRoundRect(10, 25, SCREEN_WIDTH - 20, 160, 6, BACKGROUND_MENU);
+    tft.drawRoundRect(10, 25, SCREEN_WIDTH - 20, 160, 6, TFT_DARKGREEN);
+
+    tft.setTextColor(TFT_DARKGREEN);
+    tft.setFreeFont(&Segoe_UI12pt7b);
+    tft.setCursor(20, 55);
+    tft.print("Nova Tarefa Recebida!");
+
+    tft.setTextColor(TFT_BLACK);
+    tft.setFreeFont(&Segoe_UI8pt7b);
+    tft.setCursor(20, 95);
+    tft.println("Uma nova tarefa foi atribuida.");
+    tft.setCursor(20, 125);
+    tft.println("Pressione confirmar para abrir.");
+
+    tft.setTextColor(TFT_DARKGREY);
+    tft.setFreeFont(&Segoe_UI8pt7b);
+    tft.drawString("[ Confirmar ] para Abrir", 75, 205);
 }
