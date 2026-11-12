@@ -1,0 +1,21 @@
+{
+    "idTarefa": 123456789,
+    "tipo": 1,
+    "descricao": "Fabricar um a engrenagem",
+    "materiais": [
+        {   "material":"maçarico",
+            "quantidade": 1    
+        },
+
+        {
+            "material": "cobre em barra",
+            "quantidade": 1
+        },
+
+        {
+            "material": "maquita",
+            "quantidade": 1
+        }
+    
+    ]
+}
