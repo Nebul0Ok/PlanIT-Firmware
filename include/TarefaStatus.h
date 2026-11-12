@@ -4,5 +4,6 @@ enum class TarefaStatus{
     Recebido,
     Parado,
     Iniciado,
-    Postergado
+    Postergado,
+    Concluido
 };

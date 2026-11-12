@@ -10,6 +10,8 @@ CarregadorDeTela Tela;
 MenuController Menu;
 TelaController telaController;
 
+const int ID = 123456789;
+
 void setup() {
   Serial.begin(115200);
   Serial.println("--== ESP32 INICIADO ==--");
