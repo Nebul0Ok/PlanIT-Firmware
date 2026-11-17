@@ -10,7 +10,7 @@ Tarefa::Tarefa(int id, std::string descricao, TarefaStatus tarefa_status):
     tarefa_status(tarefa_status)
 {}
 
-std::string Tarefa::GetDescricao(){
+const std::string& Tarefa::GetDescricao() const{
     return descricao;
 }
 
@@ -18,7 +18,7 @@ void Tarefa::AtualizarStatus(TarefaStatus novo_status){
     this->tarefa_status = novo_status;
 }
 
-JsonObject Tarefa::ConverterParaJSON(JsonDocument& doc){
+JsonObject Tarefa::ConverterParaJSON(JsonDocument& doc) const{
     JsonObject json = doc.to<JsonObject>();
 
     json["idPlanit"]= id;

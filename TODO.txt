@@ -1,0 +1,9 @@
+Interligar a tela principal com o gerenciador de tarefas
+
+Fazer o esp se conectar com o wifi
+
+Fazer o esp ouvir por meio do wifi
+
+Fazer o esp criar um ID
+
+Fazer o esp salvar as tarefas na memória

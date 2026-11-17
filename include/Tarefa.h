@@ -9,7 +9,7 @@ class Tarefa{
     public:
     Tarefa() = default;
     Tarefa(int id, std::string descricao, TarefaStatus tarefa_status);
-    const std::string& GetDescricao();
+    const std::string& GetDescricao() const;
     void AtualizarStatus(TarefaStatus novo_status);
     JsonObject ConverterParaJSON(JsonDocument& doc) const;
 

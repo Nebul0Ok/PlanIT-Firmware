@@ -4,6 +4,20 @@
 #include <sys/time.h>
 #include <Arduino.h>
 
+extern GerenciadorTarefa gerenciadorTarefa;
+
+LeitorComunicacao::LeitorComunicacao() : gerenciador(&gerenciadorTarefa) {}
+
+LeitorComunicacao::LeitorComunicacao(GerenciadorTarefa& gerenciador) : gerenciador(&gerenciador) {}
+
+void LeitorComunicacao::inicializar(GerenciadorTarefa& gerenciador){
+    this->gerenciador = &gerenciador;
+}
+
+void LeitorComunicacao::setGerenciador(GerenciadorTarefa& gerenciador){
+    this->gerenciador = &gerenciador;
+}
+
 void LeitorComunicacao::lerSerial(){
     while(Serial.available() > 0){
         char letra = Serial.read();
@@ -45,6 +59,11 @@ void LeitorComunicacao::lerBuffer(){
         tv.tv_usec = 0;
 
         settimeofday(&tv, nullptr);
+
+        Serial.println(F("\n--- [CASE 0] Atualizacao de Tempo ---"));
+        Serial.print(F("Timestamp recebido: "));
+        Serial.println((long)tempo);
+        Serial.print(F("Status settimeofday: "));
         
         break;
     }
@@ -53,6 +72,33 @@ void LeitorComunicacao::lerBuffer(){
         int idTarefa = doc["idTarefa"] | 0;
         const char* descricao = doc["descricao"] | "Sem descricao";
         JsonArray materiais = doc["materiais"];
+
+        if(gerenciador != nullptr){
+            gerenciador->AdicionarTarefa(idTarefa, descricao, TarefaStatus::Recebido);
+        }
+
+        Serial.println(F("\n--- [CASE 1] Nova Tarefa Recebida ---"));
+        Serial.print(F("ID da Tarefa: "));
+        Serial.println(idTarefa);
+        Serial.print(F("Descricao: "));
+        Serial.println(descricao);
+
+        Serial.print(F("Materiais ("));
+        Serial.print(materiais.size());
+        Serial.println(F(" itens):"));
+
+        if (materiais.isNull() || materiais.size() == 0) {
+            Serial.println(F("  -> Nenhum material listado."));
+        } else {
+            // Percorre e imprime cada item do JsonArray
+            for (JsonVariant v : materiais) {
+                Serial.print(F("  - "));
+                // O serializeJson garante que imprima certo seja texto, número ou outro objeto
+                serializeJson(v, Serial); 
+                Serial.println();
+            }
+        }
+
         break;
     }
     
