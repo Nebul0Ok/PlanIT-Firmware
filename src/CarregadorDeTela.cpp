@@ -1,4 +1,5 @@
 #include "CarregadorDeTela.h"
+#include "LeitorComunicacao.h"
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 #include <Logo.h>
@@ -10,10 +11,8 @@
 #include <Segoe_UI8pt7b.h>
 #include "Botoes.h"
 
-
 void CarregadorDeTela::CarregarSplashLogo(TFT_eSPI &tft){
     tft.fillScreen(BACKGROUND_SPLASH_SCREEN);
-    // tft.setSwapBytes(true);
     tft.pushImage(95,160-LOGO_HEIGHT, LOGO_WIDTH, LOGO_HEIGHT, image_data_Logo, TFT_MAGENTA);
     tft.setFreeFont(&Segoe_UI20pt7b);
     tft.setTextColor(TFT_BLACK);
@@ -24,9 +23,14 @@ void CarregadorDeTela::CarregarMenuSemTarefas(TFT_eSPI &tft){
     tft.fillScreen(BACKGROUND_SPLASH_SCREEN);
     tft.pushImage(0,0,WIFI_WIDTH,WIFI_HEIGHT, image_data_WiFi_Com, TFT_MAGENTA);
 
+    if (LeitorComunicacao::HoraSincronizada()) {
+        tft.setTextColor(TFT_BLACK, BACKGROUND_SPLASH_SCREEN);
+        tft.setFreeFont(&Segoe_UI8pt7b);
+        tft.drawString(LeitorComunicacao::ObterHoraFormatada("%H:%M"), 135, 4);
+    }
+
     tft.fillRoundRect(9,27, SCREEN_WIDTH-27,126,5,BACKGROUND_MENU);
 
-    
     tft.setViewport(15,29, SCREEN_WIDTH-27,126);
     tft.setTextColor(TFT_BLACK);
     tft.setFreeFont(&Segoe_UI20pt7b);
@@ -49,45 +53,57 @@ void CarregadorDeTela::CarregarMenuSemInternet(TFT_eSPI &tft){
     tft.resetViewport();
 }
 
-void CarregadorDeTela::CarregarMenuComTarefas(TFT_eSPI &tft){
-  tft.fillScreen(TFT_DARKGREY);
+void CarregadorDeTela::CarregarMenuComTarefas(TFT_eSPI &tft, const Tarefa* tarefa){
+    tft.fillScreen(TFT_DARKGREY);
 
-  tft.pushImage(0,0,WIFI_WIDTH,WIFI_HEIGHT,image_data_WiFi_Com, TFT_MAGENTA);
+    tft.pushImage(0,0,WIFI_WIDTH,WIFI_HEIGHT,image_data_WiFi_Com, TFT_MAGENTA);
 
-  tft.fillRoundRect(14, 23, 228, 116, 4, 0xFF92);
-  tft.drawRoundRect(14, 23, 228, 116, 4, 0xFF92);
+    // Se a hora estiver sincronizada, exibe no topo
+    if (LeitorComunicacao::HoraSincronizada()) {
+        tft.setTextColor(TFT_WHITE, TFT_DARKGREY);
+        tft.setFreeFont(&Segoe_UI8pt7b);
+        tft.drawString(LeitorComunicacao::ObterHoraFormatada("%H:%M"), 135, 4);
+    }
 
-  
-  tft.pushImage(8, 157, 70, 70, BtnConcluir);
-  tft.drawRect(7,156,72,72, TFT_WHITE);
-  tft.drawRect(6,155,74,74, TFT_WHITE);
-  tft.drawRect(5,154,76,76, TFT_WHITE);
+    tft.fillRoundRect(14, 23, 228, 116, 4, 0xFF92);
+    tft.drawRoundRect(14, 23, 228, 116, 4, 0xFF92);
 
-  tft.pushImage(88, 157, 70, 70, BtnRetornar);
+    // Botões principais de ação
+    tft.pushImage(8, 157, 70, 70, BtnConcluir);
+    tft.drawRect(7,156,72,72, TFT_WHITE);
+    tft.drawRect(6,155,74,74, TFT_WHITE);
+    tft.drawRect(5,154,76,76, TFT_WHITE);
 
-  tft.pushImage(167, 157, 70, 70, BtnPausar);
+    tft.pushImage(88, 157, 70, 70, BtnRetornar);
+    tft.pushImage(167, 157, 70, 70, BtnPausar);
+    tft.pushImage(246, 157, 70, 70, BtnAdiar);
 
-  tft.pushImage(246, 157, 70, 70, BtnAdiar);
+    // Ícone de Material (Com ou Sem material baseado na tarefa)
+    bool temMateriais = (tarefa != nullptr && !tarefa->GetMateriais().empty());
+    if (temMateriais) {
+        tft.pushImage(256, 89, 50, 50, ComMaterial);
+    } else {
+        tft.pushImage(256, 89, 50, 50, SemMaterial);
+    }
 
-  tft.pushImage(256, 89, 50, 50, ComMaterial);
+    // Ícone de Notificação
+    tft.pushImage(256, 23, 50, 50, SemNotificacao);
 
-  tft.pushImage(256, 89, 50, 50, SemMaterial);
-
-  tft.pushImage(256, 23, 50, 50, SemNotificacao);
-
-  tft.pushImage(256, 23, 50, 50, ComNotificacao);
-
-    tft.setViewport(20,30, 222,100);
-
+    // Exibição da descrição da tarefa
+    tft.setViewport(20, 30, 222, 100);
     tft.setTextColor(TFT_BLACK);
     tft.setFreeFont(&Segoe_UI8pt7b);
-    tft.setCursor(15,15);
-    tft.println("Teste de tarefas!");
-    tft.resetViewport();
+    tft.setCursor(15, 15);
 
+    if (tarefa != nullptr) {
+        tft.println(tarefa->GetDescricao().c_str());
+    } else {
+        tft.println("Sem tarefa ativa.");
+    }
+    tft.resetViewport();
 }
 
-void CarregadorDeTela::CarregarMenuMateriais(TFT_eSPI &tft){
+void CarregadorDeTela::CarregarMenuMateriais(TFT_eSPI &tft, const Tarefa* tarefa){
     tft.fillScreen(BACKGROUND_SPLASH_SCREEN);
     tft.pushImage(0, 0, WIFI_WIDTH, WIFI_HEIGHT, image_data_WiFi_Com, TFT_MAGENTA);
     tft.pushImage(SCREEN_WIDTH - 55, 5, 50, 50, ComMaterial);
@@ -102,12 +118,20 @@ void CarregadorDeTela::CarregarMenuMateriais(TFT_eSPI &tft){
 
     tft.setTextColor(TFT_BLACK);
     tft.setFreeFont(&Segoe_UI8pt7b);
-    tft.setCursor(20, 85);
-    tft.println("- 1x Parafuso M4 20mm");
-    tft.setCursor(20, 110);
-    tft.println("- 2x Porca autotravante M4");
-    tft.setCursor(20, 135);
-    tft.println("- 1x Chapa de fixacao");
+
+    if (tarefa != nullptr && !tarefa->GetMateriais().empty()) {
+        const auto& mats = tarefa->GetMateriais();
+        int yOffset = 85;
+        for (size_t i = 0; i < mats.size() && i < 4; i++) {
+            tft.setCursor(20, yOffset);
+            String item = "- " + String(mats[i].quantidade) + "x " + mats[i].nome.c_str();
+            tft.println(item);
+            yOffset += 24;
+        }
+    } else {
+        tft.setCursor(20, 85);
+        tft.println("- Nenhum material necessario.");
+    }
 
     tft.setTextColor(TFT_DARKGREY);
     tft.setFreeFont(&Segoe_UI8pt7b);
@@ -139,7 +163,7 @@ void CarregadorDeTela::CarregarMenuNotificacoes(TFT_eSPI &tft){
     tft.drawString("[ Confirmar ] para Voltar", 70, 205);
 }
 
-void CarregadorDeTela::CarregarMenuNovaTarefa(TFT_eSPI &tft){
+void CarregadorDeTela::CarregarMenuNovaTarefa(TFT_eSPI &tft, const Tarefa* tarefa){
     tft.fillScreen(BACKGROUND_SPLASH_SCREEN);
     tft.pushImage(0, 0, WIFI_WIDTH, WIFI_HEIGHT, image_data_WiFi_Com, TFT_MAGENTA);
 
@@ -153,10 +177,17 @@ void CarregadorDeTela::CarregarMenuNovaTarefa(TFT_eSPI &tft){
 
     tft.setTextColor(TFT_BLACK);
     tft.setFreeFont(&Segoe_UI8pt7b);
-    tft.setCursor(20, 95);
-    tft.println("Uma nova tarefa foi atribuida.");
-    tft.setCursor(20, 125);
-    tft.println("Pressione confirmar para abrir.");
+
+    if (tarefa != nullptr) {
+        tft.setCursor(20, 85);
+        tft.print("ID: ");
+        tft.println(tarefa->GetId());
+        tft.setCursor(20, 110);
+        tft.println(tarefa->GetDescricao().c_str());
+    } else {
+        tft.setCursor(20, 95);
+        tft.println("Uma nova tarefa foi atribuida.");
+    }
 
     tft.setTextColor(TFT_DARKGREY);
     tft.setFreeFont(&Segoe_UI8pt7b);

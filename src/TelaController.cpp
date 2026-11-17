@@ -4,6 +4,7 @@ TelaController::TelaController()
     : tft(nullptr),
       carregador(nullptr),
       menu(nullptr),
+      gerenciador(nullptr),
       estadoAtual(TelaEstado::Splash_Screen),
       estadoAnterior(TelaEstado::Splash_Screen),
       conectado(true),
@@ -14,20 +15,25 @@ TelaController::TelaController()
       estadoCallback(nullptr),
       acaoCallback(nullptr) {}
 
-TelaController::TelaController(TFT_eSPI &tftRef, CarregadorDeTela &carregadorRef, MenuController &menuRef)
+TelaController::TelaController(TFT_eSPI &tftRef, CarregadorDeTela &carregadorRef, MenuController &menuRef, GerenciadorTarefas* gerenciadorPtr)
     : TelaController() {
-    inicializar(tftRef, carregadorRef, menuRef);
+    inicializar(tftRef, carregadorRef, menuRef, gerenciadorPtr);
 }
 
-void TelaController::inicializar(TFT_eSPI &tftRef, CarregadorDeTela &carregadorRef, MenuController &menuRef) {
+void TelaController::inicializar(TFT_eSPI &tftRef, CarregadorDeTela &carregadorRef, MenuController &menuRef, GerenciadorTarefas* gerenciadorPtr) {
     this->tft = &tftRef;
     this->carregador = &carregadorRef;
     this->menu = &menuRef;
+    this->gerenciador = gerenciadorPtr;
     this->inicializado = true;
     this->tempoEntradaEstado = millis();
 
     Serial.println(F("[TelaController] State Machine inicializada."));
     entrarEstado(estadoAtual);
+}
+
+void TelaController::SetGerenciadorTarefas(GerenciadorTarefas* gerenciadorPtr) {
+    this->gerenciador = gerenciadorPtr;
 }
 
 const char* TelaController::getEstadoNome(TelaEstado estado) {
@@ -74,7 +80,8 @@ void TelaController::mudarEstado(TelaEstado novoEstado) {
 void TelaController::voltarEstadoAnterior() {
     if (estadoAnterior == TelaEstado::Splash_Screen ||
         (estadoAnterior == TelaEstado::Sem_Conexao && conectado)) {
-        mudarEstado(temTarefas ? TelaEstado::Menu : TelaEstado::Sem_Tarefa);
+        bool hasTasks = (gerenciador != nullptr) ? gerenciador->TemTarefas() : temTarefas;
+        mudarEstado(hasTasks ? TelaEstado::Menu : TelaEstado::Sem_Tarefa);
     } else {
         mudarEstado(estadoAnterior);
     }
@@ -101,6 +108,8 @@ void TelaController::sairEstado(TelaEstado estado) {
 void TelaController::renderizarEstado(TelaEstado estado) {
     if (tft == nullptr || carregador == nullptr) return;
 
+    const Tarefa* tarefaAtual = (gerenciador != nullptr) ? gerenciador->GetTarefaAtual() : nullptr;
+
     switch (estado) {
         case TelaEstado::Splash_Screen:
             carregador->CarregarSplashLogo(*tft);
@@ -112,13 +121,13 @@ void TelaController::renderizarEstado(TelaEstado estado) {
             carregador->CarregarMenuSemInternet(*tft);
             break;
         case TelaEstado::Menu:
-            carregador->CarregarMenuComTarefas(*tft);
+            carregador->CarregarMenuComTarefas(*tft, tarefaAtual);
             break;
         case TelaEstado::Nova_Tarefa:
-            carregador->CarregarMenuNovaTarefa(*tft);
+            carregador->CarregarMenuNovaTarefa(*tft, tarefaAtual);
             break;
         case TelaEstado::Material:
-            carregador->CarregarMenuMateriais(*tft);
+            carregador->CarregarMenuMateriais(*tft, tarefaAtual);
             break;
         case TelaEstado::Notificacao:
             carregador->CarregarMenuNotificacoes(*tft);
@@ -146,9 +155,10 @@ void TelaController::processarEntradaEstado() {
             bool pulouSplash = botaoPressionado(BtnConfirmar);
 
             if (tempoEsgotado || pulouSplash) {
+                bool hasTasks = (gerenciador != nullptr) ? gerenciador->TemTarefas() : temTarefas;
                 if (!conectado) {
                     mudarEstado(TelaEstado::Sem_Conexao);
-                } else if (!temTarefas) {
+                } else if (!hasTasks) {
                     mudarEstado(TelaEstado::Sem_Tarefa);
                 } else {
                     mudarEstado(TelaEstado::Menu);
@@ -161,7 +171,8 @@ void TelaController::processarEntradaEstado() {
             if (botaoPressionado(BtnConfirmar)) {
                 Serial.println(F("[TelaController] Botão confirmar: tentando reconectar..."));
                 if (conectado) {
-                    mudarEstado(temTarefas ? TelaEstado::Menu : TelaEstado::Sem_Tarefa);
+                    bool hasTasks = (gerenciador != nullptr) ? gerenciador->TemTarefas() : temTarefas;
+                    mudarEstado(hasTasks ? TelaEstado::Menu : TelaEstado::Sem_Tarefa);
                 }
             }
             break;
@@ -170,7 +181,8 @@ void TelaController::processarEntradaEstado() {
         case TelaEstado::Sem_Tarefa: {
             if (botaoPressionado(BtnConfirmar)) {
                 Serial.println(F("[TelaController] Botão confirmar: verificando tarefas..."));
-                if (temTarefas) {
+                bool hasTasks = (gerenciador != nullptr) ? gerenciador->TemTarefas() : temTarefas;
+                if (hasTasks) {
                     mudarEstado(TelaEstado::Menu);
                 }
             }
@@ -194,15 +206,39 @@ void TelaController::processarEntradaEstado() {
                             break;
                         case AcaoMenu::Concluir:
                             Serial.println(F("[TelaController] Ação: Concluir tarefa"));
+                            if (gerenciador != nullptr && gerenciador->TemTarefas()) {
+                                gerenciador->ConcluirTarefaAtual();
+                                if (!gerenciador->TemTarefas()) {
+                                    mudarEstado(TelaEstado::Sem_Tarefa);
+                                } else {
+                                    forcarRedesenho();
+                                }
+                            }
                             break;
                         case AcaoMenu::Retornar:
-                            Serial.println(F("[TelaController] Ação: Retornar tarefa"));
+                            Serial.println(F("[TelaController] Ação: Iniciar/Retomar tarefa"));
+                            if (gerenciador != nullptr && gerenciador->TemTarefas()) {
+                                gerenciador->IniciarTarefaAtual();
+                                forcarRedesenho();
+                            }
                             break;
                         case AcaoMenu::Pausar:
                             Serial.println(F("[TelaController] Ação: Pausar tarefa"));
+                            if (gerenciador != nullptr && gerenciador->TemTarefas()) {
+                                gerenciador->PausarTarefaAtual();
+                                forcarRedesenho();
+                            }
                             break;
                         case AcaoMenu::Adiar:
-                            Serial.println(F("[TelaController] Ação: Adiar tarefa"));
+                            Serial.println(F("[TelaController] Ação: Adiar/Postergar tarefa"));
+                            if (gerenciador != nullptr && gerenciador->TemTarefas()) {
+                                gerenciador->AdiarTarefaAtual();
+                                if (!gerenciador->TemTarefas()) {
+                                    mudarEstado(TelaEstado::Sem_Tarefa);
+                                } else {
+                                    forcarRedesenho();
+                                }
+                            }
                             break;
                         default:
                             break;
@@ -252,7 +288,8 @@ void TelaController::setConectado(bool valor) {
         }
     } else {
         if (estadoAtual == TelaEstado::Sem_Conexao) {
-            mudarEstado(temTarefas ? TelaEstado::Menu : TelaEstado::Sem_Tarefa);
+            bool hasTasks = (gerenciador != nullptr) ? gerenciador->TemTarefas() : temTarefas;
+            mudarEstado(hasTasks ? TelaEstado::Menu : TelaEstado::Sem_Tarefa);
         }
     }
 }

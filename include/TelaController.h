@@ -4,6 +4,7 @@
 #include <TFT_eSPI.h>
 #include "CarregadorDeTela.h"
 #include "MenuController.h"
+#include "GerenciadorTarefas.h"
 
 #ifndef BtnEsquerdo
 #define BtnEsquerdo 16
@@ -32,10 +33,12 @@ typedef void (*MenuActionCallback)(AcaoMenu acao);
 class TelaController{
     public:
     TelaController();
-    TelaController(TFT_eSPI &tft, CarregadorDeTela &carregador, MenuController &menu);
+    TelaController(TFT_eSPI &tft, CarregadorDeTela &carregador, MenuController &menu, GerenciadorTarefas* gerenciador = nullptr);
 
     // Inicialização da State Machine
-    void inicializar(TFT_eSPI &tft, CarregadorDeTela &carregador, MenuController &menu);
+    void inicializar(TFT_eSPI &tft, CarregadorDeTela &carregador, MenuController &menu, GerenciadorTarefas* gerenciador = nullptr);
+    void SetGerenciadorTarefas(GerenciadorTarefas* gerenciador);
+    GerenciadorTarefas* GetGerenciadorTarefas() { return gerenciador; }
 
     // Ciclo principal da State Machine (chamar no loop do ESP32)
     void atualizar();
@@ -71,6 +74,7 @@ class TelaController{
     TFT_eSPI* tft;
     CarregadorDeTela* carregador;
     MenuController* menu;
+    GerenciadorTarefas* gerenciador;
 
     TelaEstado estadoAtual;
     TelaEstado estadoAnterior;
