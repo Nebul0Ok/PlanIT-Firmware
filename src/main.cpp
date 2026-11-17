@@ -4,11 +4,13 @@
 #include "CarregadorDeTela.h"
 #include "MenuController.h"
 #include "TelaController.h"
+#include "GerenciadorTarefa.h"
 
 TFT_eSPI tft;
 CarregadorDeTela Tela;
 MenuController Menu;
 TelaController telaController;
+GerenciadorTarefa gerenciadorTarefa;
 
 const int ID = 123456789;
 
@@ -20,6 +22,8 @@ void setup() {
   pinMode(BtnEsquerdo, INPUT_PULLUP);
   pinMode(BtnDireito, INPUT_PULLUP);
   pinMode(BtnConfirmar, INPUT_PULLUP);
+
+  gerenciadorTarefa.AdicionarTarefa(1,"Teste", TarefaStatus::Recebido);
 
   // Configurações iniciais do display TFT
   tft.init();
@@ -54,7 +58,7 @@ void setup() {
     }
   });
 
-  // Callback opcional para monitorar transições de tela
+  // Callback para monitorar transições de tela
   telaController.onMudancaEstado([](TelaEstado antigo, TelaEstado novo) {
     Serial.printf("[App] Tela alterada: %s -> %s\n", 
                   TelaController::getEstadoNome(antigo), 

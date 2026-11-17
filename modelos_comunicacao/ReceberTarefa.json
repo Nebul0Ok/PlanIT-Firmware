@@ -1,7 +1,8 @@
 {
+    "idPlanit": 0123456,
     "idTarefa": 123456789,
     "tipo": 1,
-    "descricao": "Fabricar um a engrenagem",
+    "descricao": "Fabricar uma engrenagem",
     "materiais": [
         {   "material":"maçarico",
             "quantidade": 1    
