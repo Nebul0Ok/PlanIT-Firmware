@@ -3,13 +3,12 @@
 #include <TFT_eSPI.h>
 #include <Logo.h>
 #include <Cores.h>
-#include "WiFi_Com.h"
-#include "WiFi_Sem.h"
 #include <Segoe_UI20pt7b.h>
 #include <Segoe_UI12pt7b.h>
 #include <Segoe_UI8pt7b.h>
+#include "WiFi_Sem.h"
 #include "Botoes.h"
-
+#include "WiFi_Com.h"
 
 void CarregadorDeTela::CarregarSplashLogo(TFT_eSPI &tft){
     tft.fillScreen(BACKGROUND_SPLASH_SCREEN);
@@ -85,6 +84,49 @@ void CarregadorDeTela::CarregarMenuComTarefas(TFT_eSPI &tft){
     tft.println("Teste de tarefas!");
     tft.resetViewport();
 
+}
+
+void CarregadorDeTela::CarregarMenuComTarefas(TFT_eSPI &tft, Tarefa tarefa, bool notificacao){
+    tft.fillScreen(TFT_DARKGREY);
+
+    tft.pushImage(0,0,WIFI_WIDTH,WIFI_HEIGHT,image_data_WiFi_Com, TFT_MAGENTA);
+
+    tft.fillRoundRect(14, 23, 228, 116, 4, 0xFF92);
+    tft.drawRoundRect(14, 23, 228, 116, 4, 0xFF92);
+
+
+    tft.pushImage(8, 157, 70, 70, BtnConcluir);
+    tft.drawRect(7,156,72,72, TFT_WHITE);
+    tft.drawRect(6,155,74,74, TFT_WHITE);
+    tft.drawRect(5,154,76,76, TFT_WHITE);
+
+    tft.pushImage(88, 157, 70, 70, BtnRetornar);
+
+    tft.pushImage(167, 157, 70, 70, BtnPausar);
+
+    tft.pushImage(246, 157, 70, 70, BtnAdiar);
+
+    if(tarefa.TemMateriais()){
+        tft.pushImage(256, 89, 50, 50, ComMaterial);
+    }
+    else{
+        tft.pushImage(256, 89, 50, 50, SemMaterial);
+    }
+
+    if(notificacao){
+        tft.pushImage(256, 23, 50, 50, ComNotificacao);
+    }
+    else{
+        tft.pushImage(256, 23, 50, 50, SemNotificacao);
+    }
+
+    tft.setViewport(20,30, 222,100);
+
+    tft.setTextColor(TFT_BLACK);
+    tft.setFreeFont(&Segoe_UI8pt7b);
+    tft.setCursor(15,15);
+    tft.println(tarefa.GetDescricao().c_str());
+    tft.resetViewport();
 }
 
 void CarregadorDeTela::CarregarMenuMateriais(TFT_eSPI &tft){

@@ -58,3 +58,21 @@ JsonObject Tarefa::ConverterParaJSON(JsonDocument& doc) const{
 
     return json;
 }
+
+const std::array<Materiais, 15>& Tarefa::GetMateriais() const {
+    return ListaMateriais;
+}
+
+bool Tarefa::TemMateriais(){
+    return ListaMateriais.empty();
+}
+
+void Tarefa::AdicionarMateriais(const char* nome, int quantidade){
+    Materiais m;
+    
+    strcpy(m.nome, nome);
+    m.quantidade = quantidade;
+    
+    ListaMateriais[quantidadeMateriais] = m;
+    quantidadeMateriais++;
+}

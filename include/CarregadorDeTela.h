@@ -1,6 +1,7 @@
 #pragma once
 
 #include <TFT_eSPI.h>
+#include <Tarefa.h>
 
 #define SCREEN_WIDTH    320
 #define SCREEN_HEIGHT   240
@@ -10,6 +11,7 @@ class CarregadorDeTela{
     void CarregarSplashLogo(TFT_eSPI &tft);
     void CarregarMenuSemTarefas(TFT_eSPI &tft);
     void CarregarMenuComTarefas(TFT_eSPI &tft);
+    void CarregarMenuComTarefas(TFT_eSPI &tft, Tarefa tarefa, bool notificacao);
     void CarregarMenuSemInternet(TFT_eSPI &tft);
     void CarregarMenuMateriais(TFT_eSPI &tft);
     void CarregarMenuNotificacoes(TFT_eSPI &tft);

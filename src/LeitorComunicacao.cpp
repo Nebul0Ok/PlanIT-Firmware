@@ -73,6 +73,17 @@ void LeitorComunicacao::lerBuffer(){
         const char* descricao = doc["descricao"] | "Sem descricao";
         JsonArray materiais = doc["materiais"];
 
+        Tarefa t = Tarefa(idTarefa, descricao, TarefaStatus::Recebido);
+        
+        if (!materiais.isNull() || materiais.size() != 0) {
+            for (JsonVariant v : materiais) {
+                const char* nome = v["nome"] | "Sem nome";
+                int quantidade = v["quantidade"] | 0;
+
+                t.AdicionarMateriais(nome, quantidade);
+            }
+        }
+
         if(gerenciador != nullptr){
             gerenciador->AdicionarTarefa(idTarefa, descricao, TarefaStatus::Recebido);
         }
