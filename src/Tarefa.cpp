@@ -63,14 +63,16 @@ const std::array<Materiais, 15>& Tarefa::GetMateriais() const {
     return ListaMateriais;
 }
 
-bool Tarefa::TemMateriais(){
-    return ListaMateriais.empty();
+bool Tarefa::TemMateriais() const {
+    return quantidadeMateriais > 0;
 }
 
 void Tarefa::AdicionarMateriais(const char* nome, int quantidade){
+    if (quantidadeMateriais >= 15) return;
     Materiais m;
     
-    strcpy(m.nome, nome);
+    strncpy(m.nome, nome, sizeof(m.nome) - 1);
+    m.nome[sizeof(m.nome) - 1] = '\0';
     m.quantidade = quantidade;
     
     ListaMateriais[quantidadeMateriais] = m;

@@ -41,10 +41,22 @@ class MenuController{
     void ProximoBotao();
     void BotaoAnterior();
     void DesenharContorno(TFT_eSPI &tft);
+    void desenharContornoCompleto(TFT_eSPI &tft);
     void resetarSelecao();
     int getIndiceBotaoAtual() const;
 
+    void setBotaoAtivo(AcaoMenu acao, bool ativo);
+    void setBotaoAtivo(int indice, bool ativo);
+    bool isBotaoAtivo(AcaoMenu acao) const;
+    bool isBotaoAtivo(int indice) const;
+    void setMateriaisAtivo(bool ativo);
+    void setNotificacoesAtivo(bool ativo);
+
     private:
+    void desenharContornoBotao(TFT_eSPI &tft, int indice, uint16_t cor);
+    int getProximoIndiceAtivo(int indice) const;
+    int getIndiceAnteriorAtivo(int indice) const;
+
     Botao Concluir;
     Botao Retornar;
     Botao Pausar;
@@ -53,6 +65,7 @@ class MenuController{
     Botao Notificacao;
     std::vector<Botao> Botoes;
     int IndiceBotaoAtual;
+    int IndiceBotaoAnterior;
     int ProxBotao;
     int AntBotao;
 };

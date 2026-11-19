@@ -18,7 +18,7 @@ class Tarefa{
     void AtualizarStatus(TarefaStatus novo_status);
     JsonObject ConverterParaJSON(JsonDocument& doc) const;
     const std::array<Materiais, 15>& GetMateriais() const;
-    bool TemMateriais();
+    bool TemMateriais() const;
     void AdicionarMateriais(const char* nome, int quantidade);
 
     private:

@@ -19,9 +19,10 @@ void CarregadorDeTela::CarregarSplashLogo(TFT_eSPI &tft){
     tft.drawString("PlanIT",110,180);
 }
 
-void CarregadorDeTela::CarregarMenuSemTarefas(TFT_eSPI &tft){
+void CarregadorDeTela::CarregarMenuSemTarefas(TFT_eSPI &tft, bool conectado){
     tft.fillScreen(BACKGROUND_SPLASH_SCREEN);
-    tft.pushImage(0,0,WIFI_WIDTH,WIFI_HEIGHT, image_data_WiFi_Com, TFT_MAGENTA);
+    const uint16_t* iconeWifi = conectado ? image_data_WiFi_Com : image_data_WiFi_Sem;
+    tft.pushImage(0,0,WIFI_WIDTH,WIFI_HEIGHT, iconeWifi, TFT_MAGENTA);
 
     tft.fillRoundRect(9,27, SCREEN_WIDTH-27,126,5,BACKGROUND_MENU);
 
@@ -48,15 +49,19 @@ void CarregadorDeTela::CarregarMenuSemInternet(TFT_eSPI &tft){
     tft.resetViewport();
 }
 
-void CarregadorDeTela::CarregarMenuComTarefas(TFT_eSPI &tft){
+void CarregadorDeTela::CarregarMenuComTarefas(TFT_eSPI &tft, bool conectado){
+    CarregarMenuComTarefas(tft, false, conectado);
+}
+
+void CarregadorDeTela::CarregarMenuComTarefas(TFT_eSPI &tft, bool notificacao, bool conectado){
   tft.fillScreen(TFT_DARKGREY);
 
-  tft.pushImage(0,0,WIFI_WIDTH,WIFI_HEIGHT,image_data_WiFi_Com, TFT_MAGENTA);
+  const uint16_t* iconeWifi = conectado ? image_data_WiFi_Com : image_data_WiFi_Sem;
+  tft.pushImage(0,0,WIFI_WIDTH,WIFI_HEIGHT, iconeWifi, TFT_MAGENTA);
 
   tft.fillRoundRect(14, 23, 228, 116, 4, 0xFF92);
   tft.drawRoundRect(14, 23, 228, 116, 4, 0xFF92);
 
-  
   tft.pushImage(8, 157, 70, 70, BtnConcluir);
   tft.drawRect(7,156,72,72, TFT_WHITE);
   tft.drawRect(6,155,74,74, TFT_WHITE);
@@ -68,28 +73,29 @@ void CarregadorDeTela::CarregarMenuComTarefas(TFT_eSPI &tft){
 
   tft.pushImage(246, 157, 70, 70, BtnAdiar);
 
-  tft.pushImage(256, 89, 50, 50, ComMaterial);
-
   tft.pushImage(256, 89, 50, 50, SemMaterial);
 
-  tft.pushImage(256, 23, 50, 50, SemNotificacao);
+  if(notificacao){
+      tft.pushImage(256, 23, 50, 50, ComNotificacao);
+  }
+  else{
+      tft.pushImage(256, 23, 50, 50, SemNotificacao);
+  }
 
-  tft.pushImage(256, 23, 50, 50, ComNotificacao);
+  tft.setViewport(20,30, 222,100);
 
-    tft.setViewport(20,30, 222,100);
-
-    tft.setTextColor(TFT_BLACK);
-    tft.setFreeFont(&Segoe_UI8pt7b);
-    tft.setCursor(15,15);
-    tft.println("Teste de tarefas!");
-    tft.resetViewport();
-
+  tft.setTextColor(TFT_BLACK);
+  tft.setFreeFont(&Segoe_UI8pt7b);
+  tft.setCursor(15,15);
+  tft.println("Teste de tarefas!");
+  tft.resetViewport();
 }
 
-void CarregadorDeTela::CarregarMenuComTarefas(TFT_eSPI &tft, Tarefa tarefa, bool notificacao){
+void CarregadorDeTela::CarregarMenuComTarefas(TFT_eSPI &tft, Tarefa tarefa, bool notificacao, bool conectado){
     tft.fillScreen(TFT_DARKGREY);
 
-    tft.pushImage(0,0,WIFI_WIDTH,WIFI_HEIGHT,image_data_WiFi_Com, TFT_MAGENTA);
+    const uint16_t* iconeWifi = conectado ? image_data_WiFi_Com : image_data_WiFi_Sem;
+    tft.pushImage(0,0,WIFI_WIDTH,WIFI_HEIGHT, iconeWifi, TFT_MAGENTA);
 
     tft.fillRoundRect(14, 23, 228, 116, 4, 0xFF92);
     tft.drawRoundRect(14, 23, 228, 116, 4, 0xFF92);
@@ -129,9 +135,10 @@ void CarregadorDeTela::CarregarMenuComTarefas(TFT_eSPI &tft, Tarefa tarefa, bool
     tft.resetViewport();
 }
 
-void CarregadorDeTela::CarregarMenuMateriais(TFT_eSPI &tft){
+void CarregadorDeTela::CarregarMenuMateriais(TFT_eSPI &tft, bool conectado){
     tft.fillScreen(BACKGROUND_SPLASH_SCREEN);
-    tft.pushImage(0, 0, WIFI_WIDTH, WIFI_HEIGHT, image_data_WiFi_Com, TFT_MAGENTA);
+    const uint16_t* iconeWifi = conectado ? image_data_WiFi_Com : image_data_WiFi_Sem;
+    tft.pushImage(0, 0, WIFI_WIDTH, WIFI_HEIGHT, iconeWifi, TFT_MAGENTA);
     tft.pushImage(SCREEN_WIDTH - 55, 5, 50, 50, ComMaterial);
 
     tft.fillRoundRect(10, 25, SCREEN_WIDTH - 20, 160, 6, BACKGROUND_MENU);
@@ -156,9 +163,10 @@ void CarregadorDeTela::CarregarMenuMateriais(TFT_eSPI &tft){
     tft.drawString("[ Confirmar ] para Voltar", 70, 205);
 }
 
-void CarregadorDeTela::CarregarMenuNotificacoes(TFT_eSPI &tft){
+void CarregadorDeTela::CarregarMenuNotificacoes(TFT_eSPI &tft, bool conectado){
     tft.fillScreen(BACKGROUND_SPLASH_SCREEN);
-    tft.pushImage(0, 0, WIFI_WIDTH, WIFI_HEIGHT, image_data_WiFi_Com, TFT_MAGENTA);
+    const uint16_t* iconeWifi = conectado ? image_data_WiFi_Com : image_data_WiFi_Sem;
+    tft.pushImage(0, 0, WIFI_WIDTH, WIFI_HEIGHT, iconeWifi, TFT_MAGENTA);
     tft.pushImage(SCREEN_WIDTH - 55, 5, 50, 50, ComNotificacao);
 
     tft.fillRoundRect(10, 25, SCREEN_WIDTH - 20, 160, 6, BACKGROUND_MENU);
@@ -181,9 +189,10 @@ void CarregadorDeTela::CarregarMenuNotificacoes(TFT_eSPI &tft){
     tft.drawString("[ Confirmar ] para Voltar", 70, 205);
 }
 
-void CarregadorDeTela::CarregarMenuNovaTarefa(TFT_eSPI &tft){
+void CarregadorDeTela::CarregarMenuNovaTarefa(TFT_eSPI &tft, bool conectado){
     tft.fillScreen(BACKGROUND_SPLASH_SCREEN);
-    tft.pushImage(0, 0, WIFI_WIDTH, WIFI_HEIGHT, image_data_WiFi_Com, TFT_MAGENTA);
+    const uint16_t* iconeWifi = conectado ? image_data_WiFi_Com : image_data_WiFi_Sem;
+    tft.pushImage(0, 0, WIFI_WIDTH, WIFI_HEIGHT, iconeWifi, TFT_MAGENTA);
 
     tft.fillRoundRect(10, 25, SCREEN_WIDTH - 20, 160, 6, BACKGROUND_MENU);
     tft.drawRoundRect(10, 25, SCREEN_WIDTH - 20, 160, 6, TFT_DARKGREEN);

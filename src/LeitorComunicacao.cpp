@@ -85,7 +85,7 @@ void LeitorComunicacao::lerBuffer(){
         }
 
         if(gerenciador != nullptr){
-            gerenciador->AdicionarTarefa(idTarefa, descricao, TarefaStatus::Recebido);
+            gerenciador->AdicionarTarefa(t);
         }
 
         Serial.println(F("\n--- [CASE 1] Nova Tarefa Recebida ---"));

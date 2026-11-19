@@ -6,6 +6,20 @@
 #include "TelaController.h"
 #include "GerenciadorTarefa.h"
 
+// =============================================================================
+// SIMULAÇÃO TEMPORÁRIA (FASE INICIAL DE DESENVOLVIMENTO)
+// Altere para true ou false para o sistema pensar que tem WiFi ou Notificações:
+//   SIMULAR_WIFI_CONECTADO: true -> com sinal de rede / false -> sem sinal
+//   SIMULAR_TEM_NOTIFICACOES: true -> com notificações / false -> sem notificações
+// =============================================================================
+#ifndef SIMULAR_WIFI_CONECTADO
+#define SIMULAR_WIFI_CONECTADO false
+#endif
+
+#ifndef SIMULAR_TEM_NOTIFICACOES
+#define SIMULAR_TEM_NOTIFICACOES false
+#endif
+
 TFT_eSPI tft;
 CarregadorDeTela Tela;
 MenuController Menu;
@@ -23,7 +37,8 @@ void setup() {
   pinMode(BtnDireito, INPUT_PULLUP);
   pinMode(BtnConfirmar, INPUT_PULLUP);
 
-  gerenciadorTarefa.AdicionarTarefa(1,"Teste", TarefaStatus::Recebido);
+  // Tarefa de teste (comente esta linha para simular o sistema SEM tarefas):
+  gerenciadorTarefa.AdicionarTarefa(1, "Teste", TarefaStatus::Recebido);
 
   // Configurações iniciais do display TFT
   tft.init();
@@ -32,11 +47,12 @@ void setup() {
   tft.setTextWrap(true, true);
 
   // Inicializa a State Machine para gerenciar as telas
-  telaController.inicializar(tft, Tela, Menu);
+  telaController.inicializar(tft, Tela, Menu, &gerenciadorTarefa);
 
-  // Define status de rede e tarefas iniciais
-  telaController.setConectado(true);
-  telaController.setTemTarefas(true);
+  // Aplica o status de rede (simulado via #define), tarefas e notificações
+  telaController.setConectado(SIMULAR_WIFI_CONECTADO);
+  telaController.setTemNotificacoes(SIMULAR_TEM_NOTIFICACOES);
+  telaController.setTemTarefas(gerenciadorTarefa.GetQuantidade() > 0);
 
   // Callback opcional de ações disparadas pelos botões do menu
   telaController.onAcaoMenu([](AcaoMenu acao) {
@@ -53,6 +69,12 @@ void setup() {
       case AcaoMenu::Adiar:
         Serial.println("[App] Tarefa Adiada!");
         break;
+      case AcaoMenu::Materiais:
+        Serial.println("[App] Acessando Materiais!");
+        break;
+      case AcaoMenu::Notificacoes:
+        Serial.println("[App] Acessando Notificações!");
+        break;
       default:
         break;
     }
@@ -65,7 +87,7 @@ void setup() {
                   TelaController::getEstadoNome(novo));
   });
 
-  // Inicia o fluxo na Splash Screen (vai automaticamente para o Menu após 3s)
+  // Inicia o fluxo na Splash Screen (vai automaticamente para a próxima tela após 3s)
   telaController.mudarEstado(TelaEstado::Splash_Screen);
 }
 

@@ -4,30 +4,57 @@ TelaController::TelaController()
     : tft(nullptr),
       carregador(nullptr),
       menu(nullptr),
+      gerenciador(nullptr),
       estadoAtual(TelaEstado::Splash_Screen),
       estadoAnterior(TelaEstado::Splash_Screen),
       conectado(true),
       temTarefas(true),
+      temNotificacoes(false),
       inicializado(false),
       tempoEntradaEstado(0),
       splashDurationMs(3000),
       estadoCallback(nullptr),
       acaoCallback(nullptr) {}
 
-TelaController::TelaController(TFT_eSPI &tftRef, CarregadorDeTela &carregadorRef, MenuController &menuRef)
+TelaController::TelaController(TFT_eSPI &tftRef, CarregadorDeTela &carregadorRef, MenuController &menuRef, GerenciadorTarefa* gerenciadorRef)
     : TelaController() {
-    inicializar(tftRef, carregadorRef, menuRef);
+    inicializar(tftRef, carregadorRef, menuRef, gerenciadorRef);
 }
 
-void TelaController::inicializar(TFT_eSPI &tftRef, CarregadorDeTela &carregadorRef, MenuController &menuRef) {
+void TelaController::inicializar(TFT_eSPI &tftRef, CarregadorDeTela &carregadorRef, MenuController &menuRef, GerenciadorTarefa* gerenciadorRef) {
     this->tft = &tftRef;
     this->carregador = &carregadorRef;
     this->menu = &menuRef;
+    this->gerenciador = gerenciadorRef;
+    if (gerenciadorRef != nullptr) {
+        this->temTarefas = (gerenciadorRef->GetQuantidade() > 0);
+    }
+    atualizarBotoesMenu();
     this->inicializado = true;
     this->tempoEntradaEstado = millis();
 
     Serial.println(F("[TelaController] State Machine inicializada."));
     entrarEstado(estadoAtual);
+}
+
+void TelaController::setGerenciador(GerenciadorTarefa* gerenciadorRef) {
+    this->gerenciador = gerenciadorRef;
+    if (gerenciadorRef != nullptr) {
+        setTemTarefas(gerenciadorRef->GetQuantidade() > 0);
+    }
+    atualizarBotoesMenu();
+}
+
+TelaEstado TelaController::determinarEstadoPadrao() const {
+    if (temTarefas) {
+        return TelaEstado::Menu;
+    } else {
+        if (conectado) {
+            return TelaEstado::Sem_Tarefa;
+        } else {
+            return TelaEstado::Sem_Conexao;
+        }
+    }
 }
 
 const char* TelaController::getEstadoNome(TelaEstado estado) {
@@ -72,9 +99,8 @@ void TelaController::mudarEstado(TelaEstado novoEstado) {
 }
 
 void TelaController::voltarEstadoAnterior() {
-    if (estadoAnterior == TelaEstado::Splash_Screen ||
-        (estadoAnterior == TelaEstado::Sem_Conexao && conectado)) {
-        mudarEstado(temTarefas ? TelaEstado::Menu : TelaEstado::Sem_Tarefa);
+    if (estadoAnterior == TelaEstado::Splash_Screen) {
+        mudarEstado(determinarEstadoPadrao());
     } else {
         mudarEstado(estadoAnterior);
     }
@@ -83,15 +109,33 @@ void TelaController::voltarEstadoAnterior() {
 void TelaController::forcarRedesenho() {
     if (inicializado) {
         renderizarEstado(estadoAtual);
+        if (estadoAtual == TelaEstado::Menu && menu != nullptr && tft != nullptr) {
+            menu->desenharContornoCompleto(*tft);
+        }
     }
 }
 
-void TelaController::entrarEstado(TelaEstado estado) {
-    renderizarEstado(estado);
+void TelaController::atualizarBotoesMenu() {
+    if (menu == nullptr) return;
 
-    if (estado == TelaEstado::Menu && menu != nullptr) {
-        menu->resetarSelecao();
+    bool temMateriais = false;
+    if (gerenciador != nullptr && gerenciador->GetQuantidade() > 0 && gerenciador->GetTarefaAtual() != nullptr) {
+        temMateriais = gerenciador->GetTarefaAtual()->TemMateriais();
     }
+
+    menu->setBotaoAtivo(AcaoMenu::Materiais, temMateriais);
+    menu->setBotaoAtivo(AcaoMenu::Notificacoes, temNotificacoes);
+}
+
+void TelaController::entrarEstado(TelaEstado estado) {
+    if (estado == TelaEstado::Menu) {
+        atualizarBotoesMenu();
+        if (menu != nullptr) {
+            menu->resetarSelecao();
+        }
+    }
+
+    renderizarEstado(estado);
 }
 
 void TelaController::sairEstado(TelaEstado estado) {
@@ -106,22 +150,26 @@ void TelaController::renderizarEstado(TelaEstado estado) {
             carregador->CarregarSplashLogo(*tft);
             break;
         case TelaEstado::Sem_Tarefa:
-            carregador->CarregarMenuSemTarefas(*tft);
+            carregador->CarregarMenuSemTarefas(*tft, conectado);
             break;
         case TelaEstado::Sem_Conexao:
             carregador->CarregarMenuSemInternet(*tft);
             break;
         case TelaEstado::Menu:
-            carregador->CarregarMenuComTarefas(*tft);
+            if (gerenciador != nullptr && gerenciador->GetQuantidade() > 0 && gerenciador->GetTarefaAtual() != nullptr) {
+                carregador->CarregarMenuComTarefas(*tft, *(gerenciador->GetTarefaAtual()), temNotificacoes, conectado);
+            } else {
+                carregador->CarregarMenuComTarefas(*tft, temNotificacoes, conectado);
+            }
             break;
         case TelaEstado::Nova_Tarefa:
-            carregador->CarregarMenuNovaTarefa(*tft);
+            carregador->CarregarMenuNovaTarefa(*tft, conectado);
             break;
         case TelaEstado::Material:
-            carregador->CarregarMenuMateriais(*tft);
+            carregador->CarregarMenuMateriais(*tft, conectado);
             break;
         case TelaEstado::Notificacao:
-            carregador->CarregarMenuNotificacoes(*tft);
+            carregador->CarregarMenuNotificacoes(*tft, conectado);
             break;
     }
 }
@@ -146,22 +194,16 @@ void TelaController::processarEntradaEstado() {
             bool pulouSplash = botaoPressionado(BtnConfirmar);
 
             if (tempoEsgotado || pulouSplash) {
-                if (!conectado) {
-                    mudarEstado(TelaEstado::Sem_Conexao);
-                } else if (!temTarefas) {
-                    mudarEstado(TelaEstado::Sem_Tarefa);
-                } else {
-                    mudarEstado(TelaEstado::Menu);
-                }
+                mudarEstado(determinarEstadoPadrao());
             }
             break;
         }
 
         case TelaEstado::Sem_Conexao: {
             if (botaoPressionado(BtnConfirmar)) {
-                Serial.println(F("[TelaController] Botão confirmar: tentando reconectar..."));
-                if (conectado) {
-                    mudarEstado(temTarefas ? TelaEstado::Menu : TelaEstado::Sem_Tarefa);
+                Serial.println(F("[TelaController] Botão confirmar: verificando conexão/tarefas..."));
+                if (conectado || temTarefas) {
+                    mudarEstado(determinarEstadoPadrao());
                 }
             }
             break;
@@ -169,9 +211,9 @@ void TelaController::processarEntradaEstado() {
 
         case TelaEstado::Sem_Tarefa: {
             if (botaoPressionado(BtnConfirmar)) {
-                Serial.println(F("[TelaController] Botão confirmar: verificando tarefas..."));
-                if (temTarefas) {
-                    mudarEstado(TelaEstado::Menu);
+                Serial.println(F("[TelaController] Botão confirmar: verificando tarefas/conexão..."));
+                if (temTarefas || !conectado) {
+                    mudarEstado(determinarEstadoPadrao());
                 }
             }
             break;
@@ -179,6 +221,7 @@ void TelaController::processarEntradaEstado() {
 
         case TelaEstado::Menu: {
             if (menu != nullptr && tft != nullptr) {
+                atualizarBotoesMenu();
                 AcaoMenu acao = menu->VerificarBotaoApertado(*tft);
                 if (acao != AcaoMenu::Nenhuma) {
                     if (acaoCallback) {
@@ -246,25 +289,48 @@ void TelaController::setConectado(bool valor) {
     if (conectado == valor) return;
     conectado = valor;
 
+    if (estadoAtual == TelaEstado::Splash_Screen) return;
+
     if (!conectado) {
-        if (estadoAtual != TelaEstado::Splash_Screen) {
+        if (!temTarefas) {
             mudarEstado(TelaEstado::Sem_Conexao);
+        } else {
+            forcarRedesenho();
         }
     } else {
         if (estadoAtual == TelaEstado::Sem_Conexao) {
-            mudarEstado(temTarefas ? TelaEstado::Menu : TelaEstado::Sem_Tarefa);
+            mudarEstado(determinarEstadoPadrao());
+        } else {
+            forcarRedesenho();
         }
     }
 }
 
 void TelaController::setTemTarefas(bool valor) {
+    if (temTarefas == valor) return;
     temTarefas = valor;
-    if (conectado) {
-        if (!temTarefas && estadoAtual == TelaEstado::Menu) {
-            mudarEstado(TelaEstado::Sem_Tarefa);
-        } else if (temTarefas && estadoAtual == TelaEstado::Sem_Tarefa) {
+
+    if (estadoAtual == TelaEstado::Splash_Screen) return;
+
+    if (temTarefas) {
+        if (estadoAtual == TelaEstado::Sem_Tarefa || estadoAtual == TelaEstado::Sem_Conexao) {
             mudarEstado(TelaEstado::Menu);
         }
+    } else {
+        if (estadoAtual == TelaEstado::Menu) {
+            mudarEstado(conectado ? TelaEstado::Sem_Tarefa : TelaEstado::Sem_Conexao);
+        }
+    }
+}
+
+void TelaController::setTemNotificacoes(bool valor) {
+    if (temNotificacoes == valor) return;
+    temNotificacoes = valor;
+
+    atualizarBotoesMenu();
+
+    if (estadoAtual == TelaEstado::Menu) {
+        forcarRedesenho();
     }
 }
 
